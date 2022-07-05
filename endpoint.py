@@ -20,8 +20,8 @@ def create_response(payload):
         for i in dispatching_order
     ]
 
-    total_cost = utils.dot(prods, costs)
-    total_prod = utils.dot(prods, efficiencies)
+    total_cost = utils.sumprod(prods, efficiencies, costs)
+    total_prod = utils.sumprod(prods, efficiencies)
     solved = abs(total_prod - expected_load) <= utils.EPSILON
 
     logging.info(
