@@ -1,5 +1,7 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import logging
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import utils
 import solver
 
@@ -10,21 +12,33 @@ def create_response(payload):
     Handle response message and create a dict for the response message.
     """
     names, costs, efficiencies, pminmax, expected_load = utils.parse_payload(payload)
-    prods, dispatching_order, solved, total_load = solver.greedy_solver(
+    prods, dispatching_order = solver.greedy_solver(
         costs, efficiencies, pminmax, expected_load
     )
+    result = [
+        {"name": names[i], "p": f"{(prods[i] * efficiencies[i]):.1f}"}
+        for i in dispatching_order
+    ]
 
-    if solved:
-        message = [
-            {"name": names[i], "p": prods[i] * efficiencies[i]}
-            for i in dispatching_order
-        ]
-    else:
-        message = {
-            f"Message": "Infeasible problem: can not achieve {expected_load:.2f}"
-            + f"Actual load generated: {total_load:.2f}"
-        }
-    return message
+    total_cost = utils.dot(prods, costs)
+    total_prod = utils.dot(prods, efficiencies)
+    solved = abs(total_prod - expected_load) <= utils.EPSILON
+
+    logging.info(
+        f"Problem {['not solved', 'solved'][int(solved)]} |"
+        f" Generated load: {total_prod:.2f}, expected load: {expected_load:.2f},"
+        f" Total cost: {total_cost:.2f}"
+    )
+
+    if not solved:
+        msg_error = (
+            f"Infeasible solution: can not achieve {expected_load:.2f}; "
+            f"Actual load generated: {total_prod:.2f}"
+        )
+        logging.warning(msg_error)
+        return {"Message": msg_error, "Result": result}
+
+    return result
 
 
 class Endpoint(BaseHTTPRequestHandler):
@@ -53,7 +67,12 @@ class Endpoint(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    # simple logging using the default root logger
+    logging.basicConfig(level=logging.INFO)
+
+    # custome HTTPServer on port 8888 to serve the endpoint
     with HTTPServer(("", 8888), Endpoint) as server:
-        print("Endpoint started")
+        logging.info(
+            "\nUsage: `curl -X POST localhost:8888/productionplan ` with json payload\n"
+        )
         server.serve_forever()
-        print("Endpoint stoped")

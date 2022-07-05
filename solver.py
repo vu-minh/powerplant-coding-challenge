@@ -1,7 +1,7 @@
 """Solution to the powerplant production problem.
     `greedy_solver`: straightforward solution with greedy algorithm
 """
-from utils import dot
+import utils
 
 
 def greedy_solver(costs, efficiencies, pminmax, total_load):
@@ -16,38 +16,29 @@ def greedy_solver(costs, efficiencies, pminmax, total_load):
         range(len(costs)), key=lambda i: (costs[i], -efficiencies[i])
     )
 
-    # the initial state is the minumum capacity of each power plant
     pmins, pmaxs = zip(*pminmax)
-    prods = list(pmins)
-    current_load = dot(prods, efficiencies)
+    prods = [0] * len(costs)
+    current_load = 0
 
     # start generating power by the merit order to match the expected load
     for i in dispatching_order:
         eff = efficiencies[i]
+        if eff <= utils.EPSILON:
+            continue
 
         # generate power from the ith plant according to the efficiency of this plant
         prod_i = (total_load - current_load) / eff
-        print("prod_i", prod_i, current_load, eff, pmaxs[i], pmins[i])
 
         # cap the generated product by the ith plant capacity
-        # note that the gas powerplants (all plants) are at their minimum capacity
-        prod_i = min(prod_i, pmaxs[i] - pmins[i])
+        prod_i = min(prod_i, pmaxs[i])
+        if prod_i < pmins[i]:
+            continue
 
         # add the contribution of the current plant to the current_load
         prods[i] += prod_i
         current_load += prod_i * eff
-        print(i, prods[i], prod_i * eff)
 
-        solved = current_load == total_load
-        if solved:
+        if current_load == total_load:
             break
 
-    # return the production of each powerplant and the total cost
-    return prods, dispatching_order, solved, dot(prods, costs)
-
-
-# if __name__ == "__main__":
-#     data_path = "data/payload1.json"
-
-#     prods, status, cost = greedy_solver(*extract_constraints(data_path))
-#     print(prods, status, cost)
+    return prods, dispatching_order

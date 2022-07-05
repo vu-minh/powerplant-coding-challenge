@@ -2,8 +2,11 @@
 """
 
 
+EPSILON = 1e-12
+
+
 def dot(a, b):
-    """Dot product, aka sum of product of each pair of element in two lists"""
+    """Dot product, aka sum of product of each pair of elements in two lists"""
     return sum(a_i * b_i for a_i, b_i in zip(a, b))
 
 
@@ -15,7 +18,7 @@ def parse_payload(payload):
     names = [p["name"] for p in powerplants]
     pminmax = [(p["pmin"], p["pmax"]) for p in powerplants]
 
-    # how to get the fuel price for each powerplant type
+    # get the fuel price for each powerplant type
     price_key_mapping = {
         "turbojet": "kerosine(euro/MWh)",
         "gasfired": "gas(euro/MWh)",
@@ -32,7 +35,7 @@ def parse_payload(payload):
             efficiencies[i] = cost_i / 100.0
             costs[i] = 0
         else:
-            efficiencies[i] = max(p["efficiency"], 1e-12)
+            efficiencies[i] = max(p["efficiency"], EPSILON)
             costs[i] = cost_i / efficiencies[i]
 
     return names, costs, efficiencies, pminmax, expected_load
