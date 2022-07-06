@@ -1,7 +1,6 @@
 # Standalone Streamlit app for power plant production problem
 # Only for a demo with a quick solution in a visual way
 
-
 import json
 from typing import Any
 from dataclasses import dataclass
@@ -60,7 +59,7 @@ def show_powerplants(powerplants, current_productions=None):
     N = len(powerplants)
     not_solved = current_productions is None
     if not_solved:
-        current_productions = [0] * N
+        current_productions = [float(p["pmin"]) for p in powerplants]
     txt_cost = [None] * N
     txt_real_load = [None] * N
 
@@ -87,8 +86,8 @@ def show_powerplants(powerplants, current_productions=None):
             "Production",
             min_value=pmin,
             max_value=pmax,
-            value=pmin if not_solved else current_productions[i],
-            disabled=False,
+            value=current_productions[i],
+            disabled=not not_solved,
             key=f"production_{i}",
         )
 
@@ -158,37 +157,35 @@ def main_streamlit_app():
         _, config, powerplants = load_profile(profile_id)
         show_config(config, where=st.sidebar)
 
-        # show the powerplant details
+        # re-prepare the input data and call the core algorithm
+        costs, efficiencies, pminmax, expected_load = reparse_data(config, powerplants)
+
         st.table(powerplants)
+
+        current_productions = None
+        final_result = None
 
         # the current production solution is available when we call the solver
         # otherwise, just let users move the slider to update the estimate production
-        current_productions = None
-        final_result = None
         if st.button("SOLVE"):
-            # re-prepare the input data and call the core algorithm
-            costs, efficiencies, pminmax, expected_load = reparse_data(
-                config, powerplants
-            )
             final_result = solver.LP_solver(costs, efficiencies, pminmax, expected_load)
             current_productions = final_result.x.tolist()
 
-        if current_productions is not None and efficiencies is not None:
-            # visualize the powerplant with the corresponding solved/estimated production
-            current_productions, txt_real_load, txt_cost = show_powerplants(
-                powerplants, current_productions
-            )
+        # otherwise, visualize the powerplant with the corresponding solved/estimated production
+        current_productions, txt_real_load, txt_cost = show_powerplants(
+            powerplants, current_productions
+        )
 
-            # calculate the real production and cost to update the gui
-            real_load = [p * e for (p, e) in zip(current_productions, efficiencies)]
-            total_costs = [
-                p * e * c for (p, e, c) in zip(current_productions, efficiencies, costs)
-            ]
-            show_value_in_txt_elems(real_load, txt_real_load, "Real Load")
-            show_value_in_txt_elems(total_costs, txt_cost, "Cost")
+        # calculate the real production and cost to update the gui
+        real_load = [p * e for (p, e) in zip(current_productions, efficiencies)]
+        total_costs = [
+            p * e * c for (p, e, c) in zip(current_productions, efficiencies, costs)
+        ]
+        show_value_in_txt_elems(real_load, txt_real_load, "Real Load")
+        show_value_in_txt_elems(total_costs, txt_cost, "Cost")
 
-            # finally, show the updated metric and cost calculated above
-            show_summary(real_load, total_costs, config)
+        # finally, show the updated metric and cost calculated above
+        show_summary(real_load, total_costs, config)
 
         # show debug info
         with st.expander("Show Debug Info"):

@@ -71,7 +71,10 @@ A visual demo of this powerplant production problem for non-technical users and 
 
 + Install dependencies: `pip install -r requirements.txt`
 + Run the app: `streamlit run app.py`, access via the url [`http://localhost:8501/`](http://localhost:8501/).
++ Select the profile id in the selection box on the left. The interactive GUI appears on the right, in which users can move the sliders to change the production of each powerplant.
 + A quick and dirty implementation of the GUI and logic of the app is defined in [`app.py`](app.py).
+
++ [ ] TODO: the interactive mode and the auto mode have not worked smoothly together. To stop the ineractive model, fefresh the GUI (re-select the profile id or <kbd>F5</kbd>) to reset the production sliders, then click <kbd>SOLVE</kbd> button to call the solver.
 
 </details>
 
