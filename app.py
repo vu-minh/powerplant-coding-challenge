@@ -173,6 +173,7 @@ def main_streamlit_app():
             final_result = solver.LP_solver(costs, efficiencies, pminmax, expected_load)
             current_productions = final_result.x.tolist()
 
+        if current_productions is not None and efficiencies is not None:
             # visualize the powerplant with the corresponding solved/estimated production
             current_productions, txt_real_load, txt_cost = show_powerplants(
                 powerplants, current_productions
@@ -188,8 +189,6 @@ def main_streamlit_app():
 
             # finally, show the updated metric and cost calculated above
             show_summary(real_load, total_costs, config)
-        else:
-            final_result = None
 
         # show debug info
         with st.expander("Show Debug Info"):

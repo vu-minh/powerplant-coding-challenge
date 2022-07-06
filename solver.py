@@ -54,8 +54,9 @@ def LP_solver(costs, efficiencies, pminmax, expected_load):
     """Using a simplex solver to solve the powerplant production problem.
 
     Here we solve for the theorical production of each powerplant, which is bounded by `(pmin, pmax)`,
-    not the real power generated while taking into account the powerplant efficiency.
-    
+        not the real power generated while taking into account the powerplant efficiency.
+    Due to this bound, the result may differ from the result of the greedy algorithm, 
+        which check the bound condition AFTER calculating the production.
     The input `costs` is the real cost calibrated by the powerplant efficiency.
     """
 

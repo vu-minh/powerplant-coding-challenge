@@ -1,6 +1,6 @@
 ## Powerplant Efficiency
 
-```ruby
+```
 Load = total demand of power. The powerplants must generate power (production) that are equal to the demanded load.
 
                     +---------------+

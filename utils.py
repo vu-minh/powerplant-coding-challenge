@@ -6,8 +6,9 @@ EPSILON = 1e-12
 
 
 def sumprod(*vecs):
-    print(vecs)
-    """Sum product of any input vectors `x, y, z,...`, which is Σ x_i * y_i * z_i * ..."""
+    """Sum product of any input vectors x, y, z,..., which is Σ x_i * y_i * z_i * ...
+    Can be used to calculate the (weighted) dot product of 2 vectors `a@b` or `(weight_a * a) @ (weight_b * b)`
+    """
     return sum(math.prod(ei) for ei in zip(*vecs))
 
 
